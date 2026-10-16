@@ -1,0 +1,29 @@
+# CI — 确定性门禁（verification 区域规则 1：任一失败禁止合并）
+#
+# 黄金重放 + 属性测试 + 对账 + （配置了 PG 时的）append-only 权限验证。
+# 详见 scripts/verify_all.sh。
+name: verify
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pydantic pytest fastapi "uvicorn[standard]" httpx jsonschema
+
+      - name: Deterministic gate (golden replay + properties + reconciliation)
+        env:
+          PYTHON: python
+        run: bash scripts/verify_all.sh
