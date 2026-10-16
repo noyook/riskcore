@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>存量数据灌入 · 纸质表 → 事件（W-002）</title>
+<style>
+  :root { --bg:#f5f6f8; --card:#fff; --line:#e3e6ea; --text:#1f2329; --muted:#6b7280;
+         --blue:#2f6fd6; --green:#1f9d55; --red:#d83931; --orange:#e8830c; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg);
+         color:var(--text); padding:20px; }
+  .wrap { max-width:980px; margin:0 auto; }
+  h1 { font-size:18px; margin-bottom:4px; }
+  .sub { color:var(--muted); font-size:13px; margin-bottom:16px; }
+  .sub a { color:var(--blue); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:14px; }
+  .card h2 { font-size:15px; margin-bottom:10px; }
+  label { display:block; font-size:12px; color:var(--muted); margin:8px 0 3px; }
+  input, textarea, select { width:100%; padding:7px 9px; border:1px solid var(--line); border-radius:8px;
+         font-size:13px; font-family:inherit; background:#fff; }
+  textarea { min-height:110px; font-family:ui-monospace,Menlo,monospace; }
+  .row { display:flex; gap:10px; } .row > div { flex:1; }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-top:8px; }
+  th, td { border-bottom:1px solid var(--line); padding:6px 8px; text-align:left; }
+  th { color:var(--muted); font-weight:500; font-size:12px; }
+  td input { padding:4px 6px; font-size:12px; }
+  td .code { color:var(--muted); }
+  button { padding:8px 16px; border:none; border-radius:8px; background:var(--blue); color:#fff;
+           font-size:13px; cursor:pointer; }
+  button.ghost { background:#eef1f4; color:var(--text); }
+  button.small { padding:3px 10px; font-size:12px; }
+  .toolbar { display:flex; gap:8px; margin:10px 0; }
+  .ok { color:var(--green); } .bad { color:var(--red); } .warn { color:var(--orange); }
+  .stat { display:inline-block; background:#f2f4f7; border-radius:8px; padding:6px 12px; margin:4px 6px 0 0; font-size:13px; }
+  .stat b { font-size:15px; }
+  .hint { font-size:12px; color:var(--muted); margin-top:6px; line-height:1.6; }
+  .err { background:#fdf2f2; border:1px solid #f5c6c2; border-radius:8px; padding:8px 10px;
+         font-size:12px; color:var(--red); margin-top:8px; white-space:pre-wrap; }
+  .link { color:var(--blue); text-decoration:none; font-size:12px; }
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>存量数据灌入（W-002）</h1>
+  <div class="sub">纸质《风险辨识记录表》《车辆运输危险源清单》→ expert_assertion 事件 ｜
+    <a href="/ui/">→ 调度端证据披露</a> ｜ 幂等：同一行重复导入自动去重</div>
+
+  <!-- ============ 公共参数 ============ -->
+  <div class="card">
+    <h2>① 批次参数</h2>
+    <div class="row">
+      <div><label>操作人（录入员，人工事件必填）</label><input id="operator" value="安全员-001"></div>
+      <div><label>辨识日期 assessed_at</label><input id="assessed_at" type="date" value="2026-10-01"></div>
+      <div><label>默认有效期至 valid_until</label><input id="valid_until" type="date" value="2027-09-30"></div>
+    </div>
+  </div>
+
+  <!-- ============ 模式 A：记录表单条 ============ -->
+  <div class="card">
+    <h2>② 《风险辨识记录表》单条录入</h2>
+    <div class="row">
+      <div><label>对象 ID（车辆/司机）</label><input id="f_object" placeholder="veh-001"></div>
+      <div><label>危险源描述</label><input id="f_hazard" placeholder="罐体阀门密封老化"></div>
+    </div>
+    <div class="row">
+      <div><label>L 事故可能性 (1-10)</label><input id="f_L" type="number" min="1" max="10" value="3"></div>
+      <div><label>E 暴露频率 (1-10)</label><input id="f_E" type="number" min="1" max="10" value="4"></div>
+      <div><label>C 后果严重度 (1-10)</label><input id="f_C" type="number" min="1" max="10" value="7"></div>
+      <div><label>D = L×E×C</label><input id="f_D" disabled value="84"></div>
+    </div>
+    <label>管控措施</label>
+    <input id="f_measures" placeholder="定期更换密封件、月度检查">
+    <div class="toolbar">
+      <button onclick="addDraftFromForm()">加入待提交清单 ↓</button>
+      <span class="hint">单条录入用于补漏；批量请用下方清单或粘贴</span>
+    </div>
+  </div>
+
+  <!-- ============ 模式 B：危险源清单 ============ -->
+  <div class="card">
+    <h2>③ 《车辆运输危险源清单》1.1–1.10 批量录入</h2>
+    <div class="row">
+      <div><label>对象 ID（对哪些车/人统一录入）</label><input id="b_object" placeholder="veh-001"></div>
+    </div>
+    <table id="itemTable">
+      <tr><th style="width:60px">条目</th><th>危险源</th><th style="width:70px">L</th><th style="width:70px">E</th><th style="width:70px">C</th><th style="width:70px">D</th><th style="width:120px">操作</th></tr>
+    </table>
+    <div class="toolbar">
+      <button onclick="addDraftsFromTemplate()">整表加入待提交清单 ↓</button>
+      <button class="ghost" onclick="resetTemplate()">重置为模板默认值</button>
+    </div>
+  </div>
+
+  <!-- ============ 模式 C：粘贴纸质行 ============ -->
+  <div class="card">
+    <h2>④ 粘贴纸质表行（批量）</h2>
+    <textarea id="paste" placeholder="# 每行一条：对象ID, [条目号,] 危险源, L, E, C, [管控措施,] [有效期]
+veh-001, 1.1, 罐体阀门密封老化, 3, 4, 7, 定期更换密封件, 2027-09-30
+veh-002, 1.3, 驾驶员疲劳驾驶, 4, 5, 8, 连续驾驶4小时强制休息
+veh-003, 1.7, 山区路段超速, 4, 6, 6"></textarea>
+    <div class="toolbar">
+      <button class="ghost" onclick="parsePaste()">解析校验（不写入）</button>
+      <button onclick="addDraftsFromPaste()">解析并加入待提交清单 ↓</button>
+    </div>
+    <div id="parseErrs"></div>
+  </div>
+
+  <!-- ============ 待提交清单 ============ -->
+  <div class="card">
+    <h2>⑤ 待提交清单（<span id="draftCount">0</span> 条）</h2>
+    <table id="draftTable">
+      <tr><th>对象</th><th>条目</th><th>危险源</th><th>L</th><th>E</th><th>C</th><th>D</th><th>有效期</th><th></th></tr>
+    </table>
+    <div class="toolbar">
+      <button id="commitBtn" onclick="commitDrafts()">提交灌入（生成 expert_assertion 事件）</button>
+      <button class="ghost" onclick="drafts=[];renderDrafts()">清空</button>
+    </div>
+  </div>
+
+  <!-- ============ 灌入报告 ============ -->
+  <div class="card hidden" id="reportCard">
+    <h2>⑥ 灌入对账报告</h2>
+    <div id="reportStats"></div>
+    <div class="hint">对账口径：纸质表行数 = 新建事件 + 重复行（确定性 event_id 保证重跑不双计）；
+      修正比例为迁移期内 correction 事件占比。任一条目可下钻到披露层核对。</div>
+    <table id="reportTable">
+      <tr><th>对象</th><th>条目</th><th>危险源</th><th>seq</th><th>状态</th><th>下钻</th><th>修正</th></tr>
+    </table>
+    <div id="batchIdLine" class="hint"></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let drafts = [];
+let currentBatch = null;
+let templateItems = [];
+
+// ---- 模板加载 ----
+async function loadTemplate() {
+  const r = await fetch('/migrate/template');
+  const d = await r.json();
+  templateItems = d.items;
+  const tpl = $('itemTable');
+  d.items.forEach((it, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="code">${it.code}</td><td>${it.name}<div class="hint">${it.control_hint}</div></td>
+      <td><input id="tL${i}" type="number" min="1" max="10" value="${it.L}"></td>
+      <td><input id="tE${i}" type="number" min="1" max="10" value="${it.E}"></td>
+      <td><input id="tC${i}" type="number" min="1" max="10" value="${it.C}"></td>
+      <td id="tD${i}">${it.L*it.E*it.C}</td>
+      <td><button class="small ghost" onclick="addOneFromTemplate(${i})">加入</button></td>`;
+    tpl.appendChild(tr);
+  });
+}
+
+// ---- 表单 → 草稿 ----
+function baseDraft(object_id, hazard_source, L, E, C, measures, item_code) {
+  return {
+    object_id, hazard_source, L, E, C,
+    control_measures: measures || '见纸质记录表',
+    valid_until: $('valid_until').value,
+    assessed_at: $('assessed_at').value,
+    operator: $('operator').value,
+    item_code: item_code || null,
+    object_type: 'vehicle',
+  };
+}
+function addDraftFromForm() {
+  const L=+$('f_L').value, E=+$('f_E').value, C=+$('f_C').value;
+  $('f_D').value = L*E*C;
+  drafts.push(baseDraft($('f_object').value.trim(), $('f_hazard').value.trim(), L, E, C, $('f_measures').value.trim()));
+  renderDrafts();
+}
+function addOneFromTemplate(i) {
+  const it = templateItems[i];
+  const L=+$('tL'+i).value, E=+$('tE'+i).value, C=+$('tC'+i).value;
+  $('tD'+i).textContent = L*E*C;
+  drafts.push(baseDraft($('b_object').value.trim(), it.name, L, E, C, it.control_hint, it.code));
+  renderDrafts();
+}
+function addDraftsFromTemplate() {
+  if (!$('b_object').value.trim()) { alert('先填写对象 ID'); return; }
+  templateItems.forEach((_, i) => addOneFromTemplate(i));
+}
+function resetTemplate() { loadTemplate(); }
+
+// ---- 粘贴解析 ----
+async function parsePaste() {
+  const body = {
+    text: $('paste').value, operator: $('operator').value,
+    assessed_at: $('assessed_at').value, valid_until: $('valid_until').value,
+  };
+  const r = await fetch('/migrate/parse', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const d = await r.json();
+  $('parseErrs').innerHTML = d.ok
+    ? `<div class="hint ok">解析通过：${d.drafts.length} 条待提交</div>`
+    : `<div class="err">${d.errors.map(e => `第 ${e.line} 行：${e.error} → ${e.text}`).join('\n')}</div>`;
+  return d;
+}
+async function addDraftsFromPaste() {
+  const d = await parsePaste();
+  drafts.push(...d.drafts);
+  renderDrafts();
+}
+
+// ---- 待提交清单渲染 ----
+function renderDrafts() {
+  $('draftCount').textContent = drafts.length;
+  const t = $('draftTable');
+  t.innerHTML = `<tr><th>对象</th><th>条目</th><th>危险源</th><th>L</th><th>E</th><th>C</th><th>D</th><th>有效期</th><th></th></tr>`;
+  drafts.forEach((d, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${d.object_id}</td><td class="code">${d.item_code||'-'}</td><td>${d.hazard_source}</td>
+      <td>${d.L}</td><td>${d.E}</td><td>${d.C}</td><td><b>${d.L*d.E*d.C}</b></td><td>${d.valid_until}</td>
+      <td><button class="small ghost" onclick="drafts.splice(${i},1);renderDrafts()">删</button></td>`;
+    t.appendChild(tr);
+  });
+}
+
+// ---- 提交 ----
+async function commitDrafts() {
+  if (!drafts.length) { alert('待提交清单为空'); return; }
+  $('commitBtn').disabled = true;
+  const r = await fetch('/migrate/ingest', {
+    method:'POST', headers:{'Content-Type':'application/json','X-Tenant-Id':'t1'},
+    body: JSON.stringify({ drafts }),
+  });
+  const d = await r.json();
+  if (r.status !== 200) { alert('提交失败：' + JSON.stringify(d)); $('commitBtn').disabled=false; return; }
+  currentBatch = d.batch_id;
+  renderReport(d);
+  drafts = []; renderDrafts();
+  $('commitBtn').disabled = false;
+}
+
+// ---- 报告渲染 ----
+function renderReport(d) {
+  const s = d.summary;
+  $('reportCard').classList.remove('hidden');
+  $('reportStats').innerHTML =
+    `<span class="stat">纸质表行数 <b>${s.submitted_rows}</b></span>
+     <span class="stat">新建事件 <b class="ok">${s.created_events}</b></span>
+     <span class="stat">重复行（幂等去重） <b>${s.duplicate_rows}</b></span>
+     <span class="stat">失败 <b class="${s.failed_rows?'bad':''}">${s.failed_rows}</b></span>
+     <span class="stat">对账 ${s.reconciled ? '<b class="ok">一致 ✓</b>' : '<b class="bad">不一致 ✗</b>'}</span>
+     <span class="stat">修正比例 <b>${(s.correction_ratio_milli/10).toFixed(1)}%</b></span>`;
+  const t = $('reportTable');
+  t.innerHTML = `<tr><th>对象</th><th>条目</th><th>危险源</th><th>seq</th><th>状态</th><th>下钻</th><th>修正</th></tr>`;
+  d.rows.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${row.object_id}</td><td class="code">${row.item_code||'-'}</td><td>${row.hazard_source}</td>
+      <td>${row.seq ?? '-'}</td>
+      <td class="${row.status==='created'?'ok':row.status==='duplicate'?'warn':'bad'}">${
+        row.status==='created'?'已入日志':row.status==='duplicate'?'重复（未双计）':'失败'}${row.error?'：'+row.error:''}</td>
+      <td><a class="link" href="/ui/?object=${encodeURIComponent(row.object_id)}" target="_blank">证据链 →</a></td>
+      <td>${row.status==='created' ? `<button class="small ghost" onclick='fixRow(${JSON.stringify(row)})'>修正</button>` : ''}</td>`;
+    t.appendChild(tr);
+  });
+  $('batchIdLine').textContent = `批次 ${d.batch_id}（report 可从日志按 trace 重建）`;
+}
+
+// ---- 人工修正 ----
+async function fixRow(row) {
+  const reason = prompt(`修正「${row.hazard_source}」的原因：`, '纸质字迹不清，经与安全员核对');
+  if (!reason) return;
+  const L = prompt('更正后 L (1-10)', '3'), E = prompt('更正后 E (1-10)', '3'), C = prompt('更正后 C (1-10)', '5');
+  const r = await fetch('/migrate/correction', {
+    method:'POST', headers:{'Content-Type':'application/json','X-Tenant-Id':'t1'},
+    body: JSON.stringify({
+      batch_id: currentBatch, object_id: row.object_id, corrects_event_id: row.event_id,
+      reason,
+      corrected_payload: {
+        hazard_source: row.hazard_source, control_measures: '见修正记录',
+        L: +L, E: +E, C: +C, valid_until: $('valid_until').value,
+      },
+    }),
+  });
+  const d = await r.json();
+  if (r.status === 200) {
+    alert(`修正事件已入日志：seq=${d.seq}（原事件不动，correction 链可审计）`);
+    const rep = await fetch(`/migrate/report?batch_id=${currentBatch}`, { headers:{'X-Tenant-Id':'t1'} });
+    const rd = await rep.json();
+    $('reportStats').innerHTML += `<span class="stat">修正事件 <b class="warn">${rd.corrections}</b></span>`;
+  } else alert('修正失败：' + JSON.stringify(d));
+}
+
+loadTemplate();
+</script>
+</body>
+</html>

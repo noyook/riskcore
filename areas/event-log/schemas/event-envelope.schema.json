@@ -1,0 +1,140 @@
+{
+  "$defs": {
+    "EventType": {
+      "enum": [
+        "telemetry",
+        "violation",
+        "inspection",
+        "registry",
+        "work_order_created",
+        "work_order_closed",
+        "expert_assertion",
+        "correction",
+        "manual_override",
+        "projection_only"
+      ],
+      "title": "EventType",
+      "type": "string"
+    },
+    "ObjectType": {
+      "enum": [
+        "driver",
+        "vehicle",
+        "route",
+        "cargo",
+        "transport_task",
+        "enterprise"
+      ],
+      "title": "ObjectType",
+      "type": "string"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "operator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operator"
+        },
+        "source_system": {
+          "minLength": 1,
+          "title": "Source System",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_system"
+      ],
+      "title": "Provenance",
+      "type": "object"
+    }
+  },
+  "$id": "https://riskcore.local/schemas/event-envelope-1.json",
+  "additionalProperties": false,
+  "description": "唯一写入源协议（event-schema.md §信封结构）.\n\nIngest form: seq is None (server-assigned). Stored form: StoredEvent.",
+  "properties": {
+    "event_id": {
+      "format": "uuid",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "ingested_at": {
+      "format": "date-time",
+      "title": "Ingested At",
+      "type": "string"
+    },
+    "object_id": {
+      "minLength": 1,
+      "title": "Object Id",
+      "type": "string"
+    },
+    "object_type": {
+      "$ref": "#/$defs/ObjectType"
+    },
+    "occurred_at": {
+      "format": "date-time",
+      "title": "Occurred At",
+      "type": "string"
+    },
+    "payload": {
+      "additionalProperties": true,
+      "title": "Payload",
+      "type": "object"
+    },
+    "provenance": {
+      "$ref": "#/$defs/Provenance"
+    },
+    "schema_version": {
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "seq": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Seq"
+    },
+    "tenant_id": {
+      "minLength": 1,
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "trace_id": {
+      "minLength": 1,
+      "title": "Trace Id",
+      "type": "string"
+    },
+    "type": {
+      "$ref": "#/$defs/EventType"
+    }
+  },
+  "required": [
+    "event_id",
+    "tenant_id",
+    "trace_id",
+    "object_id",
+    "object_type",
+    "occurred_at",
+    "ingested_at",
+    "type",
+    "payload",
+    "provenance"
+  ],
+  "title": "RiskCore Event Envelope v1",
+  "type": "object"
+}
