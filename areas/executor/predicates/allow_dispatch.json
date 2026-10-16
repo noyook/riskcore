@@ -1,0 +1,13 @@
+{
+  "name": "allow_dispatch",
+  "object_type": "transport_task",
+  "deny_when": "veto_active OR r_milli >= lock_threshold",
+  "warn_when": "r_milli >= restrict_threshold",
+  "bound": "lock",
+  "intervention": "lock",
+  "fallback": "deny",
+  "stale_after_seconds": 900,
+  "clause": "6号文-第Y条",
+  "actions": ["reject_with_reason", "notify_dispatcher"],
+  "mode": "observe"
+}

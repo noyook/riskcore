@@ -1,0 +1,12 @@
+{
+  "name": "alert_single_fact",
+  "object_type": "vehicle",
+  "deny_when": "veto_active",
+  "bound": "alert",
+  "intervention": "alert",
+  "fallback": "deny",
+  "stale_after_seconds": 900,
+  "clause": "6号文-第X条",
+  "actions": ["notify_dispatcher"],
+  "mode": "observe"
+}

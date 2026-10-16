@@ -1,0 +1,13 @@
+{
+  "name": "restrict_orders",
+  "object_type": "driver",
+  "deny_when": "r_milli >= restrict_threshold",
+  "warn_when": "r_milli >= alert_threshold",
+  "bound": "restrict",
+  "intervention": "restrict",
+  "fallback": "deny",
+  "stale_after_seconds": 900,
+  "clause": "内部风控线",
+  "actions": ["limit_orders", "notify_dispatcher"],
+  "mode": "observe"
+}

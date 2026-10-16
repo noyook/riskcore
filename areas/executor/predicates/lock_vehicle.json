@@ -1,0 +1,12 @@
+{
+  "name": "lock_vehicle",
+  "object_type": "vehicle",
+  "deny_when": "veto_active OR r_milli >= lock_threshold",
+  "bound": "lock",
+  "intervention": "lock",
+  "fallback": "deny",
+  "stale_after_seconds": 900,
+  "clause": "6号文-第Y条",
+  "actions": ["lock_vehicle", "create_work_order"],
+  "mode": "observe"
+}
