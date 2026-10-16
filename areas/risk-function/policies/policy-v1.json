@@ -1,0 +1,97 @@
+{
+  "policy_id": "v1",
+  "effective_from": "2026-11-01",
+  "scoring": {
+    "veto_types": ["accident", "major_hazard_open", "tank_inspection_overdue", "license_invalid"],
+    "sensor_thresholds": {
+      "continuous_driving_minutes": 240,
+      "speed_max_kmh": 90
+    },
+    "weights_milli": {
+      "violation_speeding": 120,
+      "violation_fatigue": 100,
+      "telemetry_fatigue_windows": 100,
+      "telemetry_speeding_windows": 80,
+      "open_hazard_major": 150,
+      "open_hazard_general": 60,
+      "open_work_order_overdue": 70,
+      "license_days_remaining": 90,
+      "tank_inspection_days_remaining": 90
+    },
+    "decay": {
+      "half_life_days": {
+        "violation": 30,
+        "telemetry": 7,
+        "inspection": 60,
+        "work_order": 30,
+        "registry": 365,
+        "expert_assertion": 365
+      }
+    },
+    "factor_params": {
+      "violation_speeding": { "type": "ratio", "cap": 5 },
+      "violation_fatigue": { "type": "ratio", "cap": 3 },
+      "telemetry_fatigue_windows": { "type": "ratio", "cap": 4 },
+      "telemetry_speeding_windows": { "type": "ratio", "cap": 8 },
+      "open_hazard_major": { "type": "ratio", "cap": 2 },
+      "open_hazard_general": { "type": "ratio", "cap": 5 },
+      "open_work_order_overdue": { "type": "ratio", "cap": 3 },
+      "license_days_remaining": { "type": "expiry", "warn_days": 60 },
+      "tank_inspection_days_remaining": { "type": "expiry", "warn_days": 30 }
+    },
+    "interaction_whitelist": [
+      {
+        "pair": ["telemetry_fatigue_windows", "violation_speeding"],
+        "lambda_milli": 80,
+        "calibration_support": 3
+      }
+    ],
+    "prior_injection": {
+      "strength_milli": 200,
+      "assertion_ttl_days": 365
+    },
+    "missing_factor": "ignore_with_coverage_penalty",
+    "explain_top_k": 5,
+    "provenance": {
+      "_doc": "W-003 验收要求：无裸数字。source=historical_data 表示由历史事故数据派生；source=expert_prior 表示专家给定，calibration_support 为支撑样本数（0=未经任何数据校准）。双跑期（W-009）用差异报告驱动再标定，标定后发 v2，本文件永不修改。",
+      "weights_milli": {
+        "violation_speeding": { "source": "expert_prior", "calibration_support": 0, "note": "超速为直接可观测危险行为，先验 120" },
+        "violation_fatigue": { "source": "expert_prior", "calibration_support": 0, "note": "疲劳违法先验 100" },
+        "telemetry_fatigue_windows": { "source": "expert_prior", "calibration_support": 0, "note": "与违法同权，遥测更频先验 100" },
+        "telemetry_speeding_windows": { "source": "expert_prior", "calibration_support": 0, "note": "低于违法权重，先验 80" },
+        "open_hazard_major": { "source": "expert_prior", "calibration_support": 0, "note": "重大隐患未闭环先验 150（最高单因子）" },
+        "open_hazard_general": { "source": "expert_prior", "calibration_support": 0, "note": "一般隐患先验 60" },
+        "open_work_order_overdue": { "source": "expert_prior", "calibration_support": 0, "note": "整改逾期的控制失效信号，先验 70" },
+        "license_days_remaining": { "source": "expert_prior", "calibration_support": 0, "note": "证照临期先验 90；已失效走 veto" },
+        "tank_inspection_days_remaining": { "source": "expert_prior", "calibration_support": 0, "note": "罐检临期先验 90；已逾期走 veto" }
+      },
+      "interaction_whitelist": {
+        "telemetry_fatigue_windows|violation_speeding": {
+          "source": "expert_prior",
+          "calibration_support": 3,
+          "note": "D-004 白名单首项：疲劳×超速叠加的事故机理支撑；样本数 3 待安全部门复核确认后生效；函数 v1.1 才求值"
+        }
+      },
+      "thresholds": {
+        "source": "legacy_redline",
+        "calibration_support": 0,
+        "note": "alert/restrict/lock 400/600/800 与既有四色映射一致；legacy 5 条锁车红线与 veto_types 的逐条对应关系待安全部门确认（见 STATUS 待决项）"
+      }
+    }
+  },
+  "executor": {
+    "thresholds": { "alert": 400, "restrict": 600, "lock": 800 },
+    "hysteresis_milli": 50,
+    "manual_override_ttl_hours": 72
+  },
+  "clause_map": {
+    "accident": "6号文-第X条",
+    "major_hazard_open": "6号文-第X条",
+    "tank_inspection_overdue": "6号文-第X条",
+    "license_invalid": "6号文-第X条",
+    "alert": "内部风控线",
+    "restrict": "内部风控线",
+    "lock": "6号文-第Y条",
+    "_note": "条款号为占位（沿用 policy-format.md 示例约定），正式编号待法务/安全部门确认后随 v2 或 correction 事件更新"
+  }
+}
