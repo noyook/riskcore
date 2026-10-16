@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>披露层试用评估（W-007 验收）</title>
+<style>
+  :root { --bg:#f5f6f8; --card:#fff; --line:#e3e6ea; --text:#1f2329; --muted:#6b7280;
+         --blue:#2f6fd6; --green:#1f9d55; --red:#d83931; --orange:#e8830c; --purple:#7c3aed; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg);
+         color:var(--text); padding:20px; }
+  .wrap { max-width:960px; margin:0 auto; }
+  h1 { font-size:18px; margin-bottom:4px; }
+  .sub { color:var(--muted); font-size:13px; margin-bottom:16px; }
+  .sub a { color:var(--blue); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:14px; }
+  .card h2 { font-size:15px; margin-bottom:10px; }
+  label { display:block; font-size:12px; color:var(--muted); margin:8px 0 3px; }
+  input, select, textarea { width:100%; padding:7px 9px; border:1px solid var(--line); border-radius:8px;
+         font-size:13px; background:#fff; font-family:inherit; }
+  textarea { min-height:70px; }
+  .row { display:flex; gap:10px; } .row > div { flex:1; }
+  button { padding:9px 18px; border:none; border-radius:8px; background:var(--blue); color:#fff;
+           font-size:13px; cursor:pointer; }
+  button.ghost { background:#eef1f4; color:var(--text); }
+  button.big { font-size:15px; padding:12px 24px; }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  .timer { font-size:34px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .timer.over { color:var(--red); }
+  .timer.ok { color:var(--green); }
+  .hint { font-size:12px; color:var(--muted); margin-top:6px; line-height:1.7; }
+  .crit { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line); }
+  .crit:last-child { border-bottom:none; }
+  .crit .name { flex:1; font-size:14px; }
+  .crit .name small { display:block; color:var(--muted); font-size:12px; margin-top:2px; }
+  .stars { display:flex; gap:4px; }
+  .stars button { width:34px; height:34px; padding:0; border-radius:8px; background:#eef1f4; color:var(--muted);
+                  font-size:15px; font-weight:600; }
+  .stars button.on { background:var(--blue); color:#fff; }
+  .stars button.na { background:#f3f4f6; color:#b6bcc4; }
+  .result { border-radius:10px; padding:14px 16px; font-size:14px; margin-top:10px; }
+  .result.pass { background:#eefaf3; border:1px solid #a9e0c3; color:var(--green); }
+  .result.fail { background:#fdf2f2; border:1px solid #f5c6c2; color:var(--red); }
+  .stat { display:inline-block; background:#f2f4f7; border-radius:8px; padding:5px 12px; margin:4px 8px 0 0; font-size:13px; }
+  .stat b { font-size:15px; }
+  iframe { width:100%; height:520px; border:1px solid var(--line); border-radius:10px; background:#fff; }
+  .step { display:inline-block; width:22px; height:22px; border-radius:50%; background:var(--blue); color:#fff;
+          text-align:center; line-height:22px; font-size:12px; font-weight:600; margin-right:8px; }
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>披露层试用评估（W-007 验收）</h1>
+  <div class="sub">对象：真实调度员 ｜ 任务：给定一个被干预对象，30 秒内出示完整证据链 ｜
+    <a href="/ui/" target="_blank">打开证据披露界面 ↗</a></div>
+
+  <!-- 步骤 1：登记 -->
+  <div class="card" id="step1">
+    <h2><span class="step">1</span>登记与开始</h2>
+    <div class="row">
+      <div><label>评估人（调度员）</label><input id="evaluator" placeholder="张三"></div>
+      <div><label>角色</label>
+        <select id="role"><option>dispatcher</option><option>safety_officer</option><option>supervisor</option></select></div>
+      <div><label>试用对象 ID（建议取当前有干预的对象）</label><input id="object_id" value="veh-001"></div>
+    </div>
+    <div class="toolbar" style="margin-top:12px">
+      <button class="big" onclick="startTrial()">开始试用（启动 30 秒计时）</button>
+    </div>
+    <div class="hint">点击后下方会加载该对象的证据链页面。请按调度真实工作方式检查：
+      <b>结论是否一句话说得清、证据能否点开下钻、置信度是否可信、干预卡是否写明条款号与解除条件</b>。
+      完成后点"停止计时"进入打分。</div>
+  </div>
+
+  <!-- 步骤 2：计时 + 界面 -->
+  <div class="card hidden" id="step2">
+    <h2><span class="step">2</span>证据链出示（计时中）</h2>
+    <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap">
+      <div class="timer" id="timer">30.0</div>
+      <div>
+        <button onclick="stopTimer()">停止计时（已完成出示）</button>
+        <button class="ghost" onclick="restartTrial()">重新开始</button>
+      </div>
+      <div class="hint" style="flex:1; min-width:220px">判定规则：≤30 秒且自评已出示
+        <b>结论 + 条款号 + 可下钻证据</b> 三要素。超时会标红，但仍可提交（记录实际耗时）。</div>
+    </div>
+    <div style="margin-top:12px"><iframe id="explainFrame" src="about:blank"></iframe></div>
+  </div>
+
+  <!-- 步骤 3：打分 -->
+  <div class="card hidden" id="step3">
+    <h2><span class="step">3</span>分项打分（1–5 分）</h2>
+    <div id="criteria"></div>
+    <label>是否愿意依赖此界面做调度决策？</label>
+    <select id="would_rely">
+      <option value="yes">愿意</option><option value="unsure">犹豫（需改进）</option><option value="no">不愿意</option>
+    </select>
+    <label>文字反馈（哪里看不懂 / 哪里慢 / 缺什么）</label>
+    <textarea id="comments" placeholder="例如：解除条件写得清楚，但置信条三个数字不知道代表什么…"></textarea>
+    <div class="toolbar" style="margin-top:12px">
+      <button class="big" onclick="submitTrial()">提交评估</button>
+      <span class="hint" id="scoreHint"></span>
+    </div>
+    <div id="submitResult"></div>
+  </div>
+
+  <!-- 历史记录 -->
+  <div class="card">
+    <h2>试用记录（从日志重建，projection_only 留痕）</h2>
+    <div class="toolbar">
+      <button class="ghost" onclick="loadRecords()">刷新记录</button>
+      <span class="hint">通过规则：≤30s 且平均分 ≥ 4.0。W-007 人工验收建议 ≥3 位调度员通过。</span>
+    </div>
+    <div id="records"></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const CRITERIA = [
+  { key:'conclusion',   name:'结论行易懂度',   hint:'"已锁定：罐检逾期"这种一句话是否一眼看懂' },
+  { key:'drilldown',    name:'证据可下钻性',   hint:'能否点开看到原始事件（时间/来源/操作人）' },
+  { key:'confidence',   name:'置信度展示可信度', hint:'三段式置信条 + 低置信降级是否帮助你判断"要不要信"'},
+  { key:'intervention', name:'干预卡清晰度',   hint:'条款号 + 解除条件（"r<750 且工单闭环"）是否说得清' },
+  { key:'override',     name:'覆写横幅可见性', hint:'含人工调整时置顶横幅是否醒目（无覆写对象选 N/A）' },
+  { key:'overall',      name:'总体满意度',     hint:'整体是否达到"敢给调度员用"的标准' },
+];
+let startedAt = null, timerId = null, elapsed = null;
+const scores = {};
+
+// ---- 渲染评分项 ----
+function renderCriteria() {
+  const box = $('criteria');
+  CRITERIA.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'crit';
+    div.innerHTML = `<div class="name">${c.name}<small>${c.hint}</small></div><div class="stars" id="st-${c.key}"></div>`;
+    box.appendChild(div);
+    const st = div.querySelector('.stars');
+    for (let i = 1; i <= 5; i++) {
+      const b = document.createElement('button');
+      b.textContent = i; b.dataset.v = i;
+      b.onclick = () => { scores[c.key] = i; paintStars(c.key); };
+      st.appendChild(b);
+    }
+    const na = document.createElement('button');
+    na.textContent = 'N/A'; na.className = 'na';
+    na.onclick = () => { delete scores[c.key]; paintStars(c.key); };
+    st.appendChild(na);
+  });
+}
+function paintStars(key) {
+  document.querySelectorAll(`#st-${key} button`).forEach(b => {
+    b.className = (scores[key] && +b.dataset.v <= scores[key]) ? 'on' : (b.textContent === 'N/A' ? 'na' : '');
+  }
+  );
+  const vals = CRITERIA.filter(c => scores[c.key]).map(c => scores[c.key]);
+  $('scoreHint').textContent = vals.length ? `已评 ${vals.length} 项，均分 ${(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1)}` : '';
+}
+renderCriteria();
+
+// ---- 计时 ----
+function startTrial() {
+  const ev = $('evaluator').value.trim(), oid = $('object_id').value.trim();
+  if (!ev || !oid) { alert('请填写评估人和对象 ID'); return; }
+  startedAt = new Date();
+  elapsed = null;
+  $('step2').classList.remove('hidden');
+  $('explainFrame').src = `/ui/?object=${encodeURIComponent(oid)}`;
+  $('step3').classList.add('hidden');
+  $('step2').scrollIntoView({ behavior:'smooth' });
+  clearInterval(timerId);
+  timerId = setInterval(tick, 100); tick();
+}
+function restartTrial() { startTrial(); }
+function tick() {
+  if (!startedAt) return;
+  const s = (Date.now() - startedAt.getTime()) / 1000;
+  const t = $('timer');
+  t.textContent = s.toFixed(1);
+  t.className = 'timer ' + (s > 30 ? 'over' : 'ok');
+}
+function stopTimer() {
+  if (!startedAt) return;
+  elapsed = (Date.now() - startedAt.getTime()) / 1000;
+  clearInterval(timerId);
+  $('timer').textContent = elapsed.toFixed(1) + ' 秒';
+  $('timer').className = 'timer ' + (elapsed > 30 ? 'over' : 'ok');
+  $('step3').classList.remove('hidden');
+  $('step3').scrollIntoView({ behavior:'smooth' });
+}
+
+// ---- 提交 ----
+async function submitTrial() {
+  const required = CRITERIA.filter(c => c.key !== 'override').map(c => c.key);
+  const missing = required.filter(k => !scores[k]);
+  if (missing.length) { alert('请先完成所有必评项（override 无覆写对象可选 N/A）'); return; }
+  const body = {
+    evaluator: $('evaluator').value.trim(),
+    role: $('role').value,
+    object_id: $('object_id').value.trim(),
+    elapsed_seconds: elapsed === null ? 999 : Math.round(elapsed),
+    scores, would_rely: $('would_rely').value,
+    comments: $('comments').value.trim(),
+    started_at: startedAt.toISOString(),
+  };
+  const r = await fetch('/trial/submit', {
+    method:'POST', headers:{'Content-Type':'application/json','X-Tenant-Id':'t1'},
+    body: JSON.stringify(body),
+  });
+  const d = await r.json();
+  if (r.status !== 200) { alert('提交失败：' + JSON.stringify(d)); return; }
+  const cls = d.passed ? 'pass' : 'fail';
+  $('submitResult').innerHTML = `<div class="result ${cls}">
+    <b>${d.passed ? '✓ 本项试用通过' : '✗ 本项试用未通过'}</b><br>
+    用时 ${body.elapsed_seconds}s（≤30s：${d.within_30s ? '是' : '否'}）｜ 平均分 ${(d.average_score_milli/1000).toFixed(1)}（≥4.0：${d.average_score_milli>=4000?'是':'否'}）<br>
+    记录已入日志：event ${d.event_id.slice(0,8)}…（seq=${d.seq}）</div>`;
+  loadRecords();
+}
+
+// ---- 历史记录 ----
+async function loadRecords() {
+  const r = await fetch('/trial/records', { headers:{'X-Tenant-Id':'t1'} });
+  const d = await r.json();
+  if (!d.total) { $('records').innerHTML = '<div class="hint">暂无记录</div>'; return; }
+  let html = `<span class="stat">共 <b>${d.total}</b> 次</span>
+              <span class="stat">通过 <b style="color:var(--green)">${d.passed}</b></span>
+              <span class="stat">通过率 <b>${(d.pass_rate_milli/10).toFixed(1)}%</b></span>`;
+  html += '<table style="width:100%; border-collapse:collapse; font-size:13px; margin-top:10px">' +
+    '<tr><th style="text-align:left;color:var(--muted);font-size:12px;padding:6px 8px">时间</th><th></th><th></th><th></th><th></th><th></th></tr>';
+  d.records.forEach(x => {
+    const sc = x.scores || {};
+    html += `<tr style="border-bottom:1px solid var(--line)">
+      <td style="padding:8px">${x.recorded_at.slice(0,16).replace('T',' ')}</td>
+      <td>${x.evaluator}<br><span style="color:var(--muted);font-size:12px">${x.object_id}</span></td>
+      <td>${x.elapsed_seconds}s</td>
+      <td>均分 ${(x.average_score_milli/1000).toFixed(1)}</td>
+      <td style="color:${x.passed?'var(--green)':'var(--red)'};font-weight:600">${x.passed?'通过':'未过'}</td>
+      <td style="color:var(--muted);font-size:12px">${x.comments ? x.comments.slice(0,40) : ''}</td></tr>`;
+  });
+  $('records').innerHTML = html + '</table>';
+}
+loadRecords();
+</script>
+</body>
+</html>

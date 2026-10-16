@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>风险调度台 · 证据披露</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #ffffff; --line: #e3e6ea; --text: #1f2329;
+    --muted: #6b7280; --red: #d83931; --orange: #e8830c; --yellow: #d9a400;
+    --blue: #2f6fd6; --purple: #7c3aed; --green: #1f9d55;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+         background: var(--bg); color: var(--text); padding: 20px; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 18px; margin-bottom: 14px; }
+  .toolbar { display: flex; gap: 8px; margin-bottom: 16px; }
+  .toolbar input { flex: 1; padding: 8px 10px; border: 1px solid var(--line);
+                   border-radius: 8px; font-size: 14px; background: var(--card); }
+  .toolbar button { padding: 8px 18px; border: none; border-radius: 8px;
+                    background: var(--blue); color: #fff; font-size: 14px; cursor: pointer; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+          padding: 16px; margin-bottom: 12px; }
+  .conclusion { font-size: 17px; font-weight: 600; }
+  .banner { background: linear-gradient(90deg, #f3e8ff, #fff7ed); border: 1px solid var(--purple);
+            border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; font-size: 14px; }
+  .banner b { color: var(--purple); }
+  .conf-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 13px; }
+  .conf-row .label { width: 88px; color: var(--muted); }
+  .bar { flex: 1; height: 8px; background: #eceff3; border-radius: 4px; overflow: hidden; }
+  .bar > div { height: 100%; background: var(--blue); border-radius: 4px; }
+  .low .bar > div { background: #b6bcc4; }
+  .low { opacity: .75; }
+  .low-badge { display: inline-block; background: #fdf0e5; color: var(--orange);
+               border: 1px solid #f5c98a; border-radius: 6px; font-size: 12px;
+               padding: 1px 8px; margin-left: 8px; }
+  details { border-top: 1px solid var(--line); padding: 10px 0; }
+  details:first-of-type { border-top: none; }
+  summary { cursor: pointer; font-size: 14px; font-weight: 600; }
+  summary .cnt { color: var(--muted); font-weight: 400; margin-left: 6px; }
+  .ev { padding: 8px 0 8px 14px; border-left: 3px solid var(--line); margin: 8px 0 8px 6px; }
+  .ev .pt { font-size: 14px; }
+  .ev .meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .ev .meta code { background: #eef1f4; border-radius: 4px; padding: 1px 5px; }
+  .contrib { float: right; font-size: 12px; color: var(--blue); font-weight: 600; }
+  .iv { display: flex; justify-content: space-between; align-items: center;
+        background: #fdf2f2; border: 1px solid #f5c6c2; border-radius: 8px;
+        padding: 10px 12px; margin-top: 8px; font-size: 14px; }
+  .iv .clause { font-size: 12px; color: var(--red); font-weight: 600; }
+  .iv .release { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .notes { font-size: 12px; color: var(--orange); margin-top: 8px; }
+  .empty { color: var(--muted); font-size: 14px; padding: 12px 0; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>风险调度台 · 证据披露（W-007 旁路观察期）</h1>
+  <div class="toolbar" style="margin-bottom:12px">
+    <input id="oid" placeholder="对象 ID，如 veh-001" value="veh-001">
+    <button onclick="load()">查看证据链</button>
+    <a class="link" href="/ui/trial.html" style="align-self:center;font-size:13px">试用评估（调度员）→</a>
+  </div>
+  <div id="app"></div>
+</div>
+
+<script>
+const GROUP_LABEL = { veto: "否决证据", prior: "先验注入", factors: "风险因子", interaction: "交互项", override: "人工覆写" };
+
+async function load() {
+  const params = new URLSearchParams(location.search);
+  const oid = params.get("object") || document.getElementById("oid").value.trim();
+  document.getElementById("oid").value = oid;
+  const app = document.getElementById("app");
+  app.innerHTML = '<div class="card empty">加载中…</div>';
+  try {
+    const r = await fetch(`/explain?object_id=${encodeURIComponent(oid)}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    render(await r.json());
+  } catch (e) {
+    app.innerHTML = `<div class="card empty">查询失败：${e.message}（后端不可达或对象不存在）</div>`;
+  }
+}
+
+function confBar(label, milli) {
+  const pct = Math.round(milli / 10);
+  return `<div class="conf-row"><span class="label">${label}</span>
+    <div class="bar"><div style="width:${pct}%"></div></div><span>${pct}%</span></div>`;
+}
+
+function render(d) {
+  const app = document.getElementById("app");
+  let html = "";
+
+  // 覆写横幅（置顶，禁折叠）
+  const ov = (d.evidence_chain || []).find(g => g.group === "override");
+  if (ov && ov.events[0]) {
+    html += `<div class="banner">⚠️ <b>此状态含人工调整</b>：${ov.events[0].plain_text}
+             <span style="color:var(--muted)">（事件 <code>${ov.events[0].event_id}</code>）</span></div>`;
+  }
+
+  // 结论行
+  html += `<div class="card"><div class="conclusion">${d.conclusion}</div>
+    <div class="${d.low_confidence ? "low" : ""}">
+      ${confBar("证据条数", Math.min(1000, (d.confidence.n_events || 0) * 100))}
+      ${confBar("窗口覆盖", d.confidence.window_coverage_milli)}
+      ${confBar("数据新鲜度", d.confidence.data_freshness_milli)}
+    </div>
+    ${d.low_confidence ? '<span class="low-badge">低置信 · 结论需谨慎采信</span>' : ""}
+    ${(d.confidence.calibration_notes || []).map(n => `<div class="notes">⚠ ${n}</div>`).join("")}
+  </div>`;
+
+  // 干预卡
+  if (d.active_interventions && d.active_interventions.length) {
+    html += `<div class="card"><b>当前干预</b>` + d.active_interventions.map(i => `
+      <div class="iv"><div><div>${i.intervention === "lock" ? "🔒" : i.intervention === "restrict" ? "⛔" : "⚠️"}
+        ${i.predicate} <span class="clause">${i.clause}</span></div>
+        <div class="release">解除条件：${i.release_condition}</div></div></div>`).join("") + `</div>`;
+  }
+
+  // 证据组
+  const groups = (d.evidence_chain || []).filter(g => g.group !== "override");
+  if (!groups.length) html += `<div class="card"><div class="empty">暂无证据事件</div></div>`;
+  for (const g of groups) {
+    html += `<div class="card"><details open><summary>
+      <span class="dot" style="background:${g.group === "veto" ? "var(--red)" : g.group === "prior" ? "var(--purple)" : "var(--blue)"}"></span>
+      ${GROUP_LABEL[g.group] || g.group}<span class="cnt">${g.events.length} 条</span></summary>` +
+      g.events.map(e => `<div class="ev">
+        ${e.contribution_milli != null ? `<span class="contrib">+${e.contribution_milli} 分</span>` : ""}
+        <div class="pt">${e.plain_text}</div>
+        <div class="meta">${e.occurred_at.replace("T", " ").slice(0, 16)} · 来源 ${e.provenance.source_system}
+          ${e.provenance.operator ? " · 操作人 " + e.provenance.operator : ""} · 下钻 <code>${e.event_id}</code></div>
+      </div>`).join("") + `</details></div>`;
+  }
+  app.innerHTML = html;
+}
+
+load();
+</script>
+</body>
+</html>
