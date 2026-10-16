@@ -1,0 +1,345 @@
+[
+  {
+    "name": "veto_tank_overdue",
+    "object_id": "g-veto-1",
+    "as_of": "2026-10-15T12:00:00+00:00",
+    "policy_id": "v1",
+    "events": [
+      {
+        "event_id": "00000000-0000-4000-8000-000000000001",
+        "tenant_id": "t1",
+        "trace_id": "tr-g-veto-1",
+        "object_id": "g-veto-1",
+        "object_type": "vehicle",
+        "seq": null,
+        "occurred_at": "2026-10-13T12:00:00Z",
+        "ingested_at": "2026-10-13T12:00:01Z",
+        "type": "registry",
+        "payload": {
+          "registry_kind": "tank_inspection",
+          "expires_on": "2026-10-01",
+          "status": "expired",
+          "document_ref": null
+        },
+        "provenance": {
+          "source_system": "test-source",
+          "operator": null
+        },
+        "schema_version": "1"
+      },
+      {
+        "event_id": "00000000-0000-4000-8000-000000000002",
+        "tenant_id": "t1",
+        "trace_id": "tr-g-veto-1",
+        "object_id": "g-veto-1",
+        "object_type": "vehicle",
+        "seq": null,
+        "occurred_at": "2026-10-13T12:00:00Z",
+        "ingested_at": "2026-10-13T12:00:01Z",
+        "type": "violation",
+        "payload": {
+          "violation_kind": "speeding",
+          "count": 3,
+          "duration_minutes": 10,
+          "detected_at": "2026-10-13T12:00:00+00:00"
+        },
+        "provenance": {
+          "source_system": "test-source",
+          "operator": null
+        },
+        "schema_version": "1"
+      },
+      {
+        "event_id": "00000000-0000-4000-8000-000000000003",
+        "tenant_id": "t1",
+        "trace_id": "tr-g-veto-1",
+        "object_id": "g-veto-1",
+        "object_type": "vehicle",
+        "seq": null,
+        "occurred_at": "2026-10-13T12:00:00Z",
+        "ingested_at": "2026-10-13T12:00:01Z",
+        "type": "telemetry",
+        "payload": {
+          "window_start": "2026-10-13T12:00:00+00:00",
+          "window_end": "2026-10-13T12:10:00+00:00",
+          "speed_max_kmh": 128,
+          "continuous_driving_minutes": 310,
+          "device_id": "obd-1"
+        },
+        "provenance": {
+          "source_system": "test-source",
+          "operator": null
+        },
+        "schema_version": "1"
+      }
+    ]
+  },
+  {
+    "name": "mid_risk",
+    "object_id": "g-mid-1",
+    "as_of": "2026-10-15T12:00:00+00:00",
+    "policy_id": "v1",
+    "events": [
+      {
+        "event_id": "00000000-0000-4000-8000-000000000011",
+        "tenant_id": "t1",
+        "trace_id": "tr-g-mid-1",
+        "object_id": "g-mid-1",
+        "object_type": "vehicle",
+        "seq": null,
+        "occurred_at": "2026-10-13T12:00:00Z",
+        "ingested_at": "2026-10-13T12:00:01Z",
+        "type": "violation",
+        "payload": {
+          "violation_kind": "speeding",
+          "count": 3,
+          "duration_minutes": 10,
+          "detected_at": "2026-10-13T12:00:00+00:00"
+        },
+        "provenance": {
+          "source_system": "test-source",
+          "operator": null
+        },
+        "schema_version": "1"
+      },
+      {
+        "event_id": "00000000-0000-4000-8000-000000000012",
+        "tenant_id": "t1",
+        "trace_id": "tr-g-mid-1",
+        "object_id": "g-mid-1",
+        "object_type": "vehicle",
+        "seq": null,
+        "occurred_at": "2026-10-13T12:00:00Z",
+        "ingested_at": "2026-10-13T12:00:01Z",
+        "type": "telemetry",
+        "payload": {
+          "window_start": "2026-10-13T12:00:00+00:00",
+          "window_end": "2026-10-13T12:10:00+00:00",
+          "speed_max_kmh": 110,
+          "continuous_driving_minutes": 300,
+          "device_id": "obd-1"
+        },
+        "provenance": {
+          "source_system": "test-source",
+          "operator": null
+        },
+        "schema_version": "1"
+      },
+      {
+        "event_id": "00000000-0000-4000-8000-000000000013",
+        "tenant_id": "t1",
+        "trace_id": "tr-g-mid-1",
+        "object_id": "g-mid-1",
+        "object_type": "vehicle",
+        "seq": null,
+        "occurred_at": "2026-10-13T12:00:00Z",
+        "ingested_at": "2026-10-13T12:00:01Z",
+        "type": "telemetry",
+        "payload": {
+          "window_start": "2026-10-13T12:00:00+00:00",
+          "window_end": "2026-10-13T12:10:00+00:00",
+          "speed_max_kmh": 95,
+          "continuous_driving_minutes": 260,
+          "device_id": "obd-1"
+        },
+        "provenance": {
+          "source_system": "test-source",
+          "operator": null
+        },
+        "schema_version": "1"
+      }
+    ]
+  },
+  {
+    "name": "clean",
+    "object_id": "g-clean-1",
+    "as_of": "2026-10-15T12:00:00+00:00",
+    "policy_id": "v1",
+    "events": [
+      {
+        "event_id": "00000000-0000-4000-8000-000000000021",
+        "tenant_id": "t1",
+        "trace_id": "tr-g-clean-1",
+        "object_id": "g-clean-1",
+        "object_type": "vehicle",
+        "seq": null,
+        "occurred_at": "2026-10-13T12:00:00Z",
+        "ingested_at": "2026-10-13T12:00:01Z",
+        "type": "telemetry",
+        "payload": {
+          "window_start": "2026-10-13T12:00:00+00:00",
+          "window_end": "2026-10-13T12:10:00+00:00",
+          "speed_max_kmh": 70,
+          "continuous_driving_minutes": 120,
+          "device_id": "obd-1"
+        },
+        "provenance": {
+          "source_system": "test-source",
+          "operator": null
+        },
+        "schema_version": "1"
+      }
+    ]
+  },
+  {
+    "name": "prior_only",
+    "object_id": "g-prior-1",
+    "as_of": "2026-10-15T12:00:00+00:00",
+    "policy_id": "v1",
+    "events": [
+      {
+        "event_id": "00000000-0000-4000-8000-000000000031",
+        "tenant_id": "t1",
+        "trace_id": "tr-g-prior-1",
+        "object_id": "g-prior-1",
+        "object_type": "driver",
+        "seq": null,
+        "occurred_at": "2026-10-13T12:00:00Z",
+        "ingested_at": "2026-10-13T12:00:01Z",
+        "type": "expert_assertion",
+        "payload": {
+          "hazard_source": "危险源",
+          "control_measures": "管控措施",
+          "L": 6,
+          "E": 5,
+          "C": 6,
+          "valid_until": "2027-01-01"
+        },
+        "provenance": {
+          "source_system": "annual-assessment",
+          "operator": "expert-1"
+        },
+        "schema_version": "1"
+      }
+    ]
+  },
+  {
+    "name": "correction_chain",
+    "object_id": "g-corr-1",
+    "as_of": "2026-10-15T12:00:00+00:00",
+    "policy_id": "v1",
+    "events": [
+      {
+        "event_id": "00000000-0000-4000-8000-000000000041",
+        "tenant_id": "t1",
+        "trace_id": "tr-g-corr-1",
+        "object_id": "g-corr-1",
+        "object_type": "vehicle",
+        "seq": null,
+        "occurred_at": "2026-10-13T12:00:00Z",
+        "ingested_at": "2026-10-13T12:00:01Z",
+        "type": "violation",
+        "payload": {
+          "violation_kind": "speeding",
+          "count": 5,
+          "duration_minutes": 10,
+          "detected_at": "2026-10-13T12:00:00+00:00"
+        },
+        "provenance": {
+          "source_system": "test-source",
+          "operator": null
+        },
+        "schema_version": "1"
+      },
+      {
+        "event_id": "00000000-0000-4000-8000-000000000042",
+        "tenant_id": "t1",
+        "trace_id": "tr-g-corr-1",
+        "object_id": "g-corr-1",
+        "object_type": "vehicle",
+        "seq": null,
+        "occurred_at": "2026-10-13T12:05:00Z",
+        "ingested_at": "2026-10-13T12:05:01Z",
+        "type": "correction",
+        "payload": {
+          "corrects_event_id": "00000000-0000-4000-8000-000000000041",
+          "reason": "manual fix",
+          "corrected_payload": {
+            "violation_kind": "speeding",
+            "count": 1,
+            "duration_minutes": 10,
+            "detected_at": "2026-10-13T12:00:00+00:00"
+          }
+        },
+        "provenance": {
+          "source_system": "audit-desk",
+          "operator": "auditor-1"
+        },
+        "schema_version": "1"
+      }
+    ]
+  },
+  {
+    "name": "hazard_closed",
+    "object_id": "g-closed-1",
+    "as_of": "2026-10-15T12:00:00+00:00",
+    "policy_id": "v1",
+    "events": [
+      {
+        "event_id": "00000000-0000-4000-8000-000000000051",
+        "tenant_id": "t1",
+        "trace_id": "tr-g-closed-1",
+        "object_id": "g-closed-1",
+        "object_type": "vehicle",
+        "seq": null,
+        "occurred_at": "2026-10-13T12:00:00Z",
+        "ingested_at": "2026-10-13T12:00:01Z",
+        "type": "inspection",
+        "payload": {
+          "hazard_level": "major",
+          "location": "depot-A",
+          "photo_refs": [],
+          "inspected_at": "2026-10-13T12:00:00+00:00",
+          "hazard_ref": "hz-g1"
+        },
+        "provenance": {
+          "source_system": "test-source",
+          "operator": null
+        },
+        "schema_version": "1"
+      },
+      {
+        "event_id": "00000000-0000-4000-8000-000000000052",
+        "tenant_id": "t1",
+        "trace_id": "tr-g-closed-1",
+        "object_id": "g-closed-1",
+        "object_type": "vehicle",
+        "seq": null,
+        "occurred_at": "2026-10-13T12:00:00Z",
+        "ingested_at": "2026-10-13T12:00:01Z",
+        "type": "work_order_created",
+        "payload": {
+          "hazard_ref": "hz-g1",
+          "order_type": "rectify",
+          "due_date": "2026-10-20"
+        },
+        "provenance": {
+          "source_system": "test-source",
+          "operator": null
+        },
+        "schema_version": "1"
+      },
+      {
+        "event_id": "00000000-0000-4000-8000-000000000053",
+        "tenant_id": "t1",
+        "trace_id": "tr-g-closed-1",
+        "object_id": "g-closed-1",
+        "object_type": "vehicle",
+        "seq": null,
+        "occurred_at": "2026-10-13T15:00:00Z",
+        "ingested_at": "2026-10-13T15:00:01Z",
+        "type": "work_order_closed",
+        "payload": {
+          "closes_order_id": "hz-g1",
+          "closed_at": "2026-10-13T15:00:00+00:00",
+          "acceptor": "inspector-1"
+        },
+        "provenance": {
+          "source_system": "test-source",
+          "operator": null
+        },
+        "schema_version": "1"
+      }
+    ]
+  }
+]
