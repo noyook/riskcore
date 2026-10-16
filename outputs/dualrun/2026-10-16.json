@@ -1,0 +1,24 @@
+{
+  "day": "2026-10-16",
+  "total": 9,
+  "agreed": 7,
+  "agreement_rate_milli": 777,
+  "diffs": [
+    {
+      "object_id": "veh-103",
+      "new_level": "orange",
+      "legacy_level": "yellow",
+      "new_r_milli": 609,
+      "classification": "boundary",
+      "note": "r=609 距分级边界 ≤50 毫，属滞后带口径抖动"
+    },
+    {
+      "object_id": "veh-109",
+      "new_level": "blue",
+      "legacy_level": "yellow",
+      "new_r_milli": 21,
+      "classification": "explained_new_lower",
+      "note": "新内核更松（需在 DECISIONS 说明机理）"
+    }
+  ]
+}

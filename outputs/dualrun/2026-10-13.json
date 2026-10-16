@@ -1,0 +1,32 @@
+{
+  "day": "2026-10-13",
+  "total": 9,
+  "agreed": 6,
+  "agreement_rate_milli": 666,
+  "diffs": [
+    {
+      "object_id": "veh-103",
+      "new_level": "orange",
+      "legacy_level": "yellow",
+      "new_r_milli": 640,
+      "classification": "boundary",
+      "note": "r=640 距分级边界 ≤50 毫，属滞后带口径抖动"
+    },
+    {
+      "object_id": "veh-107",
+      "new_level": "yellow",
+      "legacy_level": "blue",
+      "new_r_milli": 447,
+      "classification": "boundary",
+      "note": "r=447 距分级边界 ≤50 毫，属滞后带口径抖动"
+    },
+    {
+      "object_id": "veh-109",
+      "new_level": "blue",
+      "legacy_level": "yellow",
+      "new_r_milli": 23,
+      "classification": "explained_new_lower",
+      "note": "新内核更松（需在 DECISIONS 说明机理）"
+    }
+  ]
+}

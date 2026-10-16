@@ -1,0 +1,278 @@
+{
+  "as_of": "2026-10-15T12:00:00+00:00",
+  "tenant_id": "t1",
+  "1_ingest_requests": [
+    {
+      "event_id": "00000000-0000-4000-8000-000000000101",
+      "tenant_id": "t1",
+      "trace_id": "tr-demo-1",
+      "object_id": "veh-demo-001",
+      "object_type": "vehicle",
+      "seq": null,
+      "occurred_at": "2026-10-13T12:00:00Z",
+      "ingested_at": "2026-10-13T12:00:01Z",
+      "type": "telemetry",
+      "payload": {
+        "window_start": "2026-10-13T12:00:00+00:00",
+        "window_end": "2026-10-13T12:10:00+00:00",
+        "speed_max_kmh": 128,
+        "continuous_driving_minutes": 310,
+        "device_id": "obd-9f2c"
+      },
+      "provenance": {
+        "source_system": "obd-gateway",
+        "operator": null
+      },
+      "schema_version": "1"
+    },
+    {
+      "event_id": "00000000-0000-4000-8000-000000000102",
+      "tenant_id": "t1",
+      "trace_id": "tr-demo-2",
+      "object_id": "veh-demo-001",
+      "object_type": "vehicle",
+      "seq": null,
+      "occurred_at": "2026-10-13T13:00:00Z",
+      "ingested_at": "2026-10-13T13:00:01Z",
+      "type": "violation",
+      "payload": {
+        "violation_kind": "speeding",
+        "count": 4,
+        "duration_minutes": 40,
+        "detected_at": "2026-10-13T13:00:00+00:00"
+      },
+      "provenance": {
+        "source_system": "enforcement-platform",
+        "operator": null
+      },
+      "schema_version": "1"
+    },
+    {
+      "event_id": "00000000-0000-4000-8000-000000000103",
+      "tenant_id": "t1",
+      "trace_id": "tr-demo-3",
+      "object_id": "veh-demo-001",
+      "object_type": "vehicle",
+      "seq": null,
+      "occurred_at": "2026-10-13T14:00:00Z",
+      "ingested_at": "2026-10-13T14:00:01Z",
+      "type": "registry",
+      "payload": {
+        "registry_kind": "tank_inspection",
+        "expires_on": "2026-10-01",
+        "status": "expired",
+        "document_ref": "TJ-2025-114"
+      },
+      "provenance": {
+        "source_system": "vehicle-registry",
+        "operator": null
+      },
+      "schema_version": "1"
+    }
+  ],
+  "1_ingest_responses": [
+    {
+      "event_id": "00000000-0000-4000-8000-000000000101",
+      "seq": 1,
+      "duplicate": false
+    },
+    {
+      "event_id": "00000000-0000-4000-8000-000000000102",
+      "seq": 2,
+      "duplicate": false
+    },
+    {
+      "event_id": "00000000-0000-4000-8000-000000000103",
+      "seq": 3,
+      "duplicate": false
+    }
+  ],
+  "2_risk_output": {
+    "r_milli": 1000,
+    "veto_active": true,
+    "veto_names": [
+      "tank_inspection_overdue"
+    ],
+    "prior_injected": false,
+    "confidence": {
+      "n_events": 1,
+      "window_coverage_milli": 1000,
+      "data_freshness_milli": 1000,
+      "calibration_notes": []
+    },
+    "explain": [
+      {
+        "event_id": "00000000-0000-4000-8000-000000000103",
+        "fact": "tank_inspection_days_remaining",
+        "contribution_milli": 1000,
+        "kind": "veto"
+      }
+    ],
+    "policy_id": "v1",
+    "function_version": "0.1.0",
+    "as_of": "2026-10-15T12:00:00Z",
+    "object_id": "veh-demo-001",
+    "watermark_seq": 3
+  },
+  "3_executor_verdict": {
+    "predicate": "allow_dispatch",
+    "object_id": "veh-demo-001",
+    "allow": true,
+    "enforced": false,
+    "intervention": "lock",
+    "reason_code": "veto_active",
+    "clause": "6号文-第Y条",
+    "explain_refs": [
+      "00000000-0000-4000-8000-000000000103"
+    ],
+    "state_as_of": "2026-10-15T12:00:00Z",
+    "r_milli": 1000,
+    "veto_active": true,
+    "override": null,
+    "warning": false
+  },
+  "4_explain": {
+    "object_id": "veh-demo-001",
+    "as_of": "2026-10-15T12:00:00Z",
+    "current": {
+      "r_milli": 1000,
+      "veto_active": true,
+      "policy_id": "v1",
+      "state_as_of": "2026-10-15T12:00:00+00:00"
+    },
+    "conclusion": "已锁定：强制条款命中：罐检逾期（r=1000/1000）",
+    "confidence": {
+      "n_events": 1,
+      "window_coverage_milli": 1000,
+      "data_freshness_milli": 1000,
+      "calibration_notes": [
+        "交互项 telemetry_fatigue_windows×violation_speeding 仅 3 个样本支撑，系数未经充分校准（函数 v1.1 起求值）"
+      ]
+    },
+    "evidence_chain": [
+      {
+        "group": "veto",
+        "label": "否决证据（强制条款）",
+        "events": [
+          {
+            "event_id": "00000000-0000-4000-8000-000000000103",
+            "type": "registry",
+            "plain_text": "罐检有效期至 2026-10-01（已过期）",
+            "contribution_milli": 1000,
+            "occurred_at": "2026-10-13T14:00:00Z",
+            "provenance": {
+              "source_system": "vehicle-registry",
+              "operator": null
+            }
+          }
+        ],
+        "banner": false,
+        "pair": null
+      }
+    ],
+    "active_interventions": [
+      {
+        "predicate": "allow_dispatch",
+        "intervention": "lock",
+        "since": "2026-10-15T12:01:00+00:00",
+        "clause": "6号文-第Y条",
+        "release_condition": "r < 750 且相关整改工单闭环"
+      }
+    ],
+    "low_confidence": false
+  },
+  "5_override_ingest_request": {
+    "event_id": "00000000-0000-4000-8000-000000000104",
+    "tenant_id": "t1",
+    "trace_id": "tr-demo-4",
+    "object_id": "veh-demo-001",
+    "object_type": "vehicle",
+    "seq": null,
+    "occurred_at": "2026-10-15T12:01:00Z",
+    "ingested_at": "2026-10-15T12:01:01Z",
+    "type": "manual_override",
+    "payload": {
+      "override_level": "clear",
+      "reason": "客户紧急提货，安全部门已审批",
+      "approver": "safety-lead-1",
+      "expires_at": "2026-10-18T12:01:00+00:00"
+    },
+    "provenance": {
+      "source_system": "dispatch-desk",
+      "operator": "dispatcher-02"
+    },
+    "schema_version": "1"
+  },
+  "5_verdict_under_override": {
+    "predicate": "allow_dispatch",
+    "object_id": "veh-demo-001",
+    "allow": true,
+    "enforced": false,
+    "intervention": "none",
+    "reason_code": "override_clear",
+    "clause": "6号文-第Y条",
+    "explain_refs": [
+      "00000000-0000-4000-8000-000000000104"
+    ],
+    "state_as_of": "2026-10-15T12:01:00Z",
+    "r_milli": 1000,
+    "veto_active": true,
+    "override": {
+      "level": "clear",
+      "operator": "dispatcher-02",
+      "approver": "safety-lead-1",
+      "reason": "客户紧急提货，安全部门已审批",
+      "expires_at": "2026-10-18T12:01:00+00:00",
+      "event_id": "00000000-0000-4000-8000-000000000104"
+    },
+    "warning": false
+  },
+  "6_projection_four_color": {
+    "artifact": "four_color_distribution",
+    "stamp": {
+      "function_version": "0.1.0",
+      "policy_id": "v1",
+      "as_of": "2026-10-15T12:00:00+00:00",
+      "regenerated_at": "2026-10-15T12:01:00+00:00"
+    },
+    "as_of": "2026-10-15T12:00:00+00:00",
+    "counts": {
+      "red": 1,
+      "orange": 0,
+      "yellow": 0,
+      "blue": 0
+    },
+    "counts_cn": {
+      "红": 1,
+      "橙": 0,
+      "黄": 0,
+      "蓝": 0
+    },
+    "total": 1,
+    "entities": [
+      {
+        "object_id": "veh-demo-001",
+        "object_type": "vehicle",
+        "r_milli": 1000,
+        "color": "red",
+        "color_cn": "红",
+        "control_level": "公司级"
+      }
+    ],
+    "mapping_note": "红≥lock ｜ 橙≥restrict ｜ 黄≥alert ｜ 蓝<alert（阈值取自 policy.executor）"
+  },
+  "6_projection_doc6": {
+    "artifact": "doc6_red_yellow_list",
+    "stamp": {
+      "function_version": "0.1.0",
+      "policy_id": "v1",
+      "as_of": "2026-10-15T12:00:00+00:00",
+      "regenerated_at": "2026-10-15T12:01:00+00:00"
+    },
+    "as_of": "2026-10-15T12:00:00+00:00",
+    "title": "6号文红黄码清单 · 截至 2026-10-15",
+    "red_count": 0,
+    "yellow_count": 0,
+    "entries": []
+  }
+}

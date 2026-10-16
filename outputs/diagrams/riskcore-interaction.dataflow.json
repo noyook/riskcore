@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "riskcore 逻辑交互流程",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "viewBox": [1068, 620]
+  },
+  "stages": [
+    { "label": "事件摄取" },
+    { "label": "事实日志（本体）" },
+    { "label": "状态投影（缓存）" },
+    { "label": "决策内核" },
+    { "label": "出口与读侧" }
+  ],
+  "nodes": [
+    { "id": "ingest", "type": "backend", "label": "摄取 API", "sublabel": "POST /events", "stage": 0, "row": 2 },
+    { "id": "eventlog", "type": "database", "label": "事实日志", "sublabel": "append-only 本体", "stage": 1, "row": 2 },
+    { "id": "projector", "type": "backend", "label": "状态库投影器", "sublabel": "快照 + 决策缓存", "stage": 2, "row": 2 },
+    { "id": "policy", "type": "database", "label": "版本化 policy", "sublabel": "权重 · 阈值", "stage": 2, "row": 0 },
+    { "id": "executor", "type": "security", "label": "阈值执行器", "sublabel": "滞后带 · fail-closed", "stage": 3, "row": 0 },
+    { "id": "riskfn", "type": "backend", "label": "risk 纯函数", "sublabel": "veto → 先验 → 饱和", "stage": 3, "row": 1 },
+    { "id": "action", "type": "external", "label": "动作 / 工作流", "sublabel": "锁车 · 拒派 · 预警", "stage": 4, "row": 0 },
+    { "id": "disclosure", "type": "frontend", "label": "证据披露层", "sublabel": "/explain · /ui/", "stage": 4, "row": 2 },
+    { "id": "projection", "type": "backend", "label": "监管投影层", "sublabel": "四色 · 6号文 · LEC-D", "stage": 4, "row": 3 }
+  ],
+  "flows": [
+    { "from": "ingest", "to": "eventlog", "label": "追加事件", "classification": "唯一写入口", "variant": "emphasis" },
+    { "from": "eventlog", "to": "projector", "label": "重放全事件流", "classification": "correction 先行", "variant": "emphasis" },
+    { "from": "projector", "to": "riskfn", "label": "状态快照", "classification": "as_of 注入", "variant": "emphasis" },
+    { "from": "riskfn", "to": "executor", "label": "RiskOutput", "classification": "r / confidence", "variant": "emphasis", "labelDy": 82 },
+    { "from": "executor", "to": "action", "label": "锁车/拒派/预警", "classification": "唯一动作出口", "variant": "emphasis" },
+    { "from": "action", "to": "eventlog", "label": "后果事件回流", "classification": "唯一闭环通道", "variant": "dashed", "route": "top-channel", "labelSegment": 1 },
+    { "from": "policy", "to": "riskfn", "label": "policy_id", "classification": "权重版本", "variant": "default", "fromSide": "bottom", "toSide": "left", "via": [[530, 271]], "labelDx": -60 },
+    { "from": "policy", "to": "executor", "label": "阈值 + 滞后带", "classification": "条款号", "variant": "default", "route": "straight" },
+    { "from": "projector", "to": "disclosure", "label": "决策 + 证据链", "classification": "只读", "variant": "default" },
+    { "from": "projector", "to": "projection", "label": "决策 + 对象", "classification": "只读", "variant": "default" },
+    { "from": "eventlog", "to": "projection", "label": "全量事件", "classification": "只读", "variant": "default", "route": "bottom-channel" }
+  ],
+  "cards": [
+    { "dot": "amber", "title": "确定性四铁律", "items": ["时钟外置：as_of 由调度边界注入", "只追加：纠错 = 追加 correction", "政策版本化：函数签名带 policy_id", "序不乱：只消费 seq ≤ watermark"] },
+    { "dot": "emerald", "title": "单一动作出口", "items": ["仅执行器产动作，日志与函数不产动作", "未知即保守：取不到 r 按 fail-closed", "动作后果以事件回流日志（唯一闭环）", "无否决事件时 r < 1000"] },
+    { "dot": "violet", "title": "读侧只读投影", "items": ["披露层对人：结论可下钻原始事件", "监管层对检查：四色 / 6号文 / LEC-D", "口径变更只动投影层，不碰内核", "产物带 function_version + policy_id + as_of 钢印"] }
+  ]
+}

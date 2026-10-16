@@ -1,0 +1,32 @@
+{
+  "day": "2026-10-12",
+  "total": 9,
+  "agreed": 6,
+  "agreement_rate_milli": 666,
+  "diffs": [
+    {
+      "object_id": "veh-103",
+      "new_level": "orange",
+      "legacy_level": "yellow",
+      "new_r_milli": 656,
+      "classification": "explained_new_higher",
+      "note": "新内核更严（证据见 explain，通常为 veto/新因子）"
+    },
+    {
+      "object_id": "veh-107",
+      "new_level": "yellow",
+      "legacy_level": "blue",
+      "new_r_milli": 472,
+      "classification": "explained_new_higher",
+      "note": "新内核更严（证据见 explain，通常为 veto/新因子）"
+    },
+    {
+      "object_id": "veh-109",
+      "new_level": "blue",
+      "legacy_level": "yellow",
+      "new_r_milli": 24,
+      "classification": "explained_new_lower",
+      "note": "新内核更松（需在 DECISIONS 说明机理）"
+    }
+  ]
+}
