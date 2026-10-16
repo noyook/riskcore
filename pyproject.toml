@@ -1,0 +1,18 @@
+[project]
+name = "riskcore"
+version = "0.1.0"
+description = "带证据披露与监管投影的确定性决策函数（R-PROJECT 内核）"
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic>=2.7",
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "jsonschema>=4.21",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "httpx>=0.27"]
+
+[tool.pytest.ini_options]
+testpaths = ["areas/verification"]
+addopts = "-q --strict-markers --basetemp=.tmp/pytest"

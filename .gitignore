@@ -1,0 +1,18 @@
+.tmp/
+__pycache__/
+*.pyc
+.env
+*.db
+*.db-wal
+*.db-shm
+
+# agent / 工具本地状态
+.omo/
+.opencode/
+.workbuddy/
+.codegraph
+.pytest_cache/
+.DS_Store
+
+# 生成的投影产物（outputs/ 下仅保留文档与 dualrun 记录）
+outputs/projections/
